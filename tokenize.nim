@@ -7,14 +7,13 @@ import std/sequtils
 import std/strutils
 
 type InitType = enum
-    filename = "filename"
-    text = "text"
+    filename
+    text
 
 type Tokenizer = object
     filename: string = ""
     vocabulary: seq[(string, int)] = @[]
     text: string = ""
-
 
 proc init(self: var Tokenizer, kind: InitType, data: string) =
     case kind
@@ -24,7 +23,7 @@ proc init(self: var Tokenizer, kind: InitType, data: string) =
     of text:
         self.text = data
 
-    var tokenized = re.findAll(self.text, re"\w+|[,.]")
+    var tokenized = re.findAll(self.text, re"""\w+|[,."'"]""")
     var seen = toHashSet(tokenized)
     var unique_tokens = toSeq(seen)
     unique_tokens.sort()
@@ -34,7 +33,7 @@ proc init(self: var Tokenizer, kind: InitType, data: string) =
 
 
 proc encode(self: var Tokenizer, text: string): seq[int] =
-    var preprocessed = re.findAll(text, re"\w+|[,.]")
+    var preprocessed = re.findAll(text, re"""\w+|[,."'"]""")
     preprocessed = preprocessed.map(proc(word: string): string = strip(word))
 
     var ids: seq[int]
@@ -53,6 +52,10 @@ proc decode(self: Tokenizer, ids: seq[int]): string =
 
     # todo: remove whitespaces before punctuation
     return text
+
+
+proc get_text(self: Tokenizer): string =
+    return self.text
 
 
 proc view(self: Tokenizer) = echo self.vocabulary
